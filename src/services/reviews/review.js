@@ -11,10 +11,21 @@ const reviewsAmazn = express.Router();
 // === GETT
 reviewsAmazn.get("/", async (req, res, next) => {
   try {
-    const reviews = await getReviews();
-    res.send(reviews);
-  } catch (err) {
-    next(createHttpError(401, "Bad request"));
+    const query = `SELECT * FROM reviews ORDER BY id ASC `;
+    const result = await pool.query(query);
+    res.status(200).send(result.rows);
+  } catch (error) {
+    next(error);
+  }
+});
+// === GETT ID
+reviewsAmazn.get("/:revId", async (req, res, next) => {
+  try {
+    const query = `SELECT * FROM reviews WHERE id=${req.params.revId} `;
+    const result = await pool.query(query);
+    res.status(200).send(result.rows);
+  } catch (error) {
+    next(error);
   }
 });
 // === POST
@@ -24,54 +35,59 @@ reviewsAmazn.post("/", postValidation, async (req, res, next) => {
     next(createHttpError(400, { errorList }));
   } else {
     try {
-      const reviews = await getReviews();
-      let newReview = { ...req.body, _id: uniqid(), createdAt: new Date() };
-      reviews.push(newReview);
-      await writeReviews(reviews);
-      res.send(["Success!", newReview]);
+      const { comment, rate, product_id } = req.body;
+      const query = `INSERT INTO reviews(
+        comment,
+        rate,
+        product_id
+      )
+      VALUES(
+        ${"'" + comment + "'"},
+        ${"'" + rate + "'"},
+        ${"'" + product_id + "'"}
+      ) RETURNING *`;
+      const result = await pool.query(query);
+      if (result.rows.length > 0) {
+        res.status(201).send(result.rows[0]);
+      } else {
+        res.status(404).send({ message: "Not found!" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+});
+// === PUT
+reviewsAmazn.put("/:comentId", postValidation, async (req, res, next) => {
+  const errorList = validationResult(req);
+  if (!errorList.isEmpty()) {
+    next(createHttpError(400, { errorList }));
+  } else {
+    try {
+      const { comment, rate, product_id } = req.body;
+      const query = `
+        UPDATE reviews
+        SET
+          comment=${"'" + comment + "'"},
+          rate=${"'" + rate + "'"},
+          product_id=${"'" + product_id + "'"}
+        WHERE  id=${"'" + req.params.comentId + "'"}
+        RETURNING *`;
+      const result = await pool.query(query);
+      res.status(201).send(result.rows[0]);
     } catch (err) {
       next(createHttpError(401, "Bad request"));
     }
   }
 });
-// === PUT
-reviewsAmazn.put(
-  "/:comentId",
-  reviewIdCheck,
-  postValidation,
-  async (req, res, next) => {
-    const errorList = validationResult(req);
-    if (!errorList.isEmpty()) {
-      next(createHttpError(400, { errorList }));
-    } else {
-      try {
-        const reviews = await getReviews();
-        const index = reviews.findIndex(
-          (rew) => rew._id == req.params.comentId
-        );
-        const updtReviews = {
-          ...reviews[index],
-          ...req.body,
-          updatedAt: new Date(),
-        };
-        reviews[index] = updtReviews;
-        await writeReviews(reviews);
-        res.send(["Success!", updtReviews]);
-      } catch (err) {
-        next(createHttpError(401, "Bad request"));
-      }
-    }
-  }
-);
 //  === DELETE
-reviewsAmazn.delete("/:comentId", reviewIdCheck, async (req, res, next) => {
+reviewsAmazn.delete("/:comentId", async (req, res, next) => {
   try {
-    const reviews = await getReviews();
-    let postFiltered = reviews.filter(
-      (revw) => revw._id != req.params.comentId
-    );
-    await writeReviews(postFiltered);
-    res.status(200).send("OK");
+    const query = `DELETE FROM reviews WHERE id=${
+      "'" + req.params.comentId + "'"
+    }`;
+    await pool.query(query);
+    res.status(204).send();
   } catch (err) {
     next(createHttpError(500, ""));
   }

@@ -29,9 +29,24 @@ productsRouter.get("/", async (req, res, next) => {
 
 productsRouter.get("/:id", async (req, res, next) => {
   try {
-    const query = `SELECT * FROM products WHERE id=${
-      "'" + req.params.id + "'"
-    }`;
+    // const query = `SELECT * FROM products WHERE id=${
+    //   "'" + req.params.id + "'"
+    // }`;
+    const query = `SELECT 
+        review.id as rev_id,
+        review.comment,
+        review.rate,
+        review.product_id,
+        product.name,
+        product.description,
+        product.brand,
+        product.image_url,
+        product.price,
+        product.category
+      FROM reviews as review
+      INNER JOIN products as product 
+      ON review.product_id = product.id
+     WHERE product.id=${req.params.id}`;
     const result = await pool.query(query);
     if (result.rows.length > 0) {
       res.status(200).send(result.rows);
@@ -102,7 +117,6 @@ productsRouter.put("/:id", productValidation, async (req, res, next) => {
       updated_at= NOW()
     WHERE  id=${req.params.id}
     RETURNING *`;
-    console.log(123);
     const result = await pool.query(query);
     res.status(201).send(result.rows[0]);
   } catch (error) {

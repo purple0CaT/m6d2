@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS
         comment TEXT NOT NULL,
         rate INT NOT NULL,
         product_id INT REFERENCES products(id) ON DELETE CASCADE,
-        createdAt TIMESTAMPTZ DEFAULT NOW()
+        created_at TIMESTAMPTZ DEFAULT NOW()
     )
 `;
 
