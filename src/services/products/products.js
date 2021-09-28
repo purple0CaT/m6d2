@@ -44,7 +44,7 @@ productsRouter.get("/:id", async (req, res, next) => {
         product.price,
         product.category
       FROM reviews as review
-      INNER JOIN products as product 
+      RIGHT JOIN products as product 
       ON review.product_id = product.id
      WHERE product.id=${req.params.id}`;
     const result = await pool.query(query);
