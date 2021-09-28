@@ -1,6 +1,6 @@
-import {pool} from './db.js'
+import { pool } from "./db.js";
 
-const query =  `
+const query = `
 CREATE TABLE IF NOT EXISTS
     products(
         id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -12,17 +12,25 @@ CREATE TABLE IF NOT EXISTS
         category VARCHAR(50) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    
+    CREATE TABLE IF NOT EXISTS
+    reviews(
+        id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        comment TEXT NOT NULL,
+        rate INT NOT NULL,
+        product_id INT REFERENCES products(id) ON DELETE CASCADE,
+        createdAt TIMESTAMPTZ DEFAULT NOW()
     )
-`
+`;
 
-const createTables = async ()=>{
-    try{
-        await pool.query(query)
-        console.log("Def tables created!")
-    }catch(err){
-        console.log("Def tables NOT created!")
+const createTables = async () => {
+  try {
+    await pool.query(query);
+    console.log("Def tables created!");
+  } catch (err) {
+    console.log("Def tables NOT created!");
+  }
+};
 
-    }
-}
-
-export default createTables
+export default createTables;

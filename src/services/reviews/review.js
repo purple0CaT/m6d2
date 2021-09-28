@@ -4,6 +4,7 @@ import createHttpError from "http-errors";
 import uniqid from "uniqid";
 import { postValidation, reviewIdCheck } from "./MiddleWare.js";
 import { validationResult } from "express-validator";
+import { pool } from "../../utils/db.js";
 
 const reviewsAmazn = express.Router();
 
