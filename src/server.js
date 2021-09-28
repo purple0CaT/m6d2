@@ -5,6 +5,8 @@ import listEndpoints from "express-list-endpoints";
 import reviewsAmazn from "./services/reviews/review.js";
 import productsRouter from "./services/products/products.js";
 import { genericErrHandl, customErrHand } from "./errorHandlers.js";
+import createTables from "./utils/createTable.js";
+
 // === Serve CORS ===
 const whiteList = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
 const corsOptions = {
@@ -33,7 +35,8 @@ server.use("/reviews", reviewsAmazn);
 server.use(customErrHand);
 server.use(genericErrHandl);
 // Listen
-server.listen(port, () => {
-  console.log(port);
+server.listen(port, async () => {
+  console.log("Port number =>", port);
+  createTables()
 });
 console.table(listEndpoints(server));

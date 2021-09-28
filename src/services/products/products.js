@@ -16,6 +16,7 @@ import { getReviews } from "../fs-tools.js";
 import fs from "fs-extra";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { pool } from "../../utils/db.js";
 
 const cloudinaryStorage = new CloudinaryStorage({
   cloudinary, //authomatic read cloud URL
@@ -28,15 +29,18 @@ const productsRouter = express.Router();
 // get by category
 productsRouter.get("/", async (req, res, next) => {
   try {
-    const products = await getProducts();
-    if (req.query && req.query.category) {
-      const productsByCategory = products.find(
-        (p) => p.category === req.query.category
-      );
-      res.send(productsByCategory);
-    } else {
-      res.send(products);
-    }
+    const query = `SELECT * FROM products`
+    const result = await pool.query(query)
+    res.status(200).send(result.rows)
+    // const products = await getProducts();
+    // if (req.query && req.query.category) {
+    //   const productsByCategory = products.find(
+    //     (p) => p.category === req.query.category
+    //   );
+    //   res.send(productsByCategory);
+    // } else {
+    //   res.send(products);
+    // }
   } catch (error) {
     next(error);
   }
@@ -73,16 +77,16 @@ productsRouter.post("/", productValidation, async (req, res, next) => {
     next(createHttpError(400, errorList));
   }
   try {
-    const newProduct = {
-      id: uniqid(),
-      ...req.body,
+    // const newProduct = {
+    //   id: uniqid(),
+    //   ...req.body,
 
-      createdAt: new Date(),
-    };
-    const products = await getProducts();
-    products.push(newProduct);
-    await writeProducts(products);
-    res.status(201).send(newProduct);
+    //   createdAt: new Date(),
+    // };
+    // const products = await getProducts();
+    // products.push(newProduct);
+    // await writeProducts(products);
+    // res.status(201).send(newProduct);
   } catch (error) {
     next(error);
   }
